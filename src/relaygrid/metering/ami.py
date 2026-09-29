@@ -4,8 +4,10 @@ from collections import defaultdict
 def last_gasp_clusters(messages: list[tuple[str,float,str]], window_s: float=30.0):
     ordered=sorted(messages,key=lambda x:x[1]); clusters=[]; cur=[]; start=None
     for meter,ts,feeder in ordered:
-        if start is None or ts-start<=window_s:
+        if start is None:
             cur.append((meter,ts,feeder)); start=ts
+        elif ts-start<=window_s:
+            cur.append((meter,ts,feeder))
         else:
             clusters.append(cur); cur=[(meter,ts,feeder)]; start=ts
     if cur: clusters.append(cur)

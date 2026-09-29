@@ -19,10 +19,14 @@ class SectionVerification:
 
 
 def verify_sections(observations:list[MeterObservation],expected_energized:set[str],voltage_threshold:float=90.0):
-    by=defaultdict(list)
-    for o in observations: by[o.section_id].append(o)
+    by=defaultdict(dict)
+    for o in observations:
+        prior=by[o.section_id].get(o.meter_id)
+        if prior is None or o.timestamp_s>=prior.timestamp_s:
+            by[o.section_id][o.meter_id]=o
     out=[]
-    for section,obs in sorted(by.items()):
+    for section in sorted(set(by)|expected_energized):
+        obs=list(by.get(section,{}).values())
         energized=sum(1 for o in obs if o.ping_ok and o.voltage_v is not None and o.voltage_v>=voltage_threshold)
         ratio=energized/len(obs) if obs else 0.0
         expected=section in expected_energized

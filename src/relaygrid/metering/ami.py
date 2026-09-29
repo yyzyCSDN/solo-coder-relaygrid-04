@@ -2,13 +2,21 @@ from __future__ import annotations
 from collections import defaultdict
 
 def last_gasp_clusters(messages: list[tuple[str,float,str]], window_s: float=30.0):
-    ordered=sorted(messages,key=lambda x:x[1]); clusters=[]; cur=[]; start=None
+    ordered=sorted(messages,key=lambda x:x[1])
+    clusters=[]
+    current=[]
+    window_start=None
     for meter,ts,feeder in ordered:
-        if start is None or ts-start<=window_s:
-            cur.append((meter,ts,feeder)); start=ts
+        if window_start is None:
+            window_start=ts
+        if ts-window_start<=window_s:
+            current.append((meter,ts,feeder))
         else:
-            clusters.append(cur); cur=[(meter,ts,feeder)]; start=ts
-    if cur: clusters.append(cur)
+            clusters.append(current)
+            current=[(meter,ts,feeder)]
+            window_start=ts
+    if current:
+        clusters.append(current)
     return clusters
 
 def infer_feeder(cluster):
